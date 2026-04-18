@@ -21,6 +21,8 @@ interface ChatSession {
   status: string;
   createdAt: string;
   isUserWaitingForStaff: boolean;
+  latest_message?: string;
+  staff_member?: string | null;
 }
 
 export default function Admin() {
