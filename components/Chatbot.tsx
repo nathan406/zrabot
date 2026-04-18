@@ -6,7 +6,26 @@ import { useState, useEffect, useRef } from 'react';
 const CHAT_HISTORY_KEY = 'zax-chat-history';
 const MAX_CHAT_SESSIONS = 50;
 
-const getChatHistory = () => {
+interface Message {
+  type: string;
+  content: string;
+  timestamp: string;
+  id?: number;
+  isRealTime?: boolean;
+  files?: any[];
+  isWelcome?: boolean;
+  welcomeData?: any;
+  isError?: boolean;
+}
+
+interface ChatSession {
+  id: string;
+  messages: Message[];
+  timestamp: string;
+  title: string;
+}
+
+const getChatHistory = (): ChatSession[] => {
   if (typeof window === 'undefined') return [];
   try {
     const history = localStorage.getItem(CHAT_HISTORY_KEY);
@@ -17,7 +36,7 @@ const getChatHistory = () => {
   }
 };
 
-const saveChatHistory = (history: any[]) => {
+const saveChatHistory = (history: ChatSession[]) => {
   if (typeof window === 'undefined') return;
   try {
     const limitedHistory = history.slice(0, MAX_CHAT_SESSIONS);
@@ -29,9 +48,9 @@ const saveChatHistory = (history: any[]) => {
 
 const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-const generateSessionTitle = (messages: any[]) => {
+const generateSessionTitle = (messages: Message[]) => {
   if (messages.length === 0) return 'New Chat';
-  const firstUserMessage = messages.find(msg => msg.type === 'user');
+  const firstUserMessage = messages.find((msg: Message) => msg.type === 'user');
   if (firstUserMessage) {
     return firstUserMessage.content.substring(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   }
@@ -60,7 +79,7 @@ const TypewriterText = ({ text, speed = 10, onComplete }: { text: string, speed?
 };
 
 export default function Chatbot({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -176,14 +195,14 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean, onClose:
             files: m.files || []
           }));
 
-          setMessages(prev => {
-            const existingIds = new Set(prev.map(msg => msg.id).filter(id => id !== undefined));
-            const newMessagesFromServer = mappedMessages.filter((m: any) => !existingIds.has(m.id));
+          setMessages((prev: Message[]) => {
+            const existingIds = new Set(prev.map((msg: Message) => msg.id).filter((id): id is number => id !== undefined));
+            const newMessagesFromServer = mappedMessages.filter((m: Message) => !existingIds.has(m.id as number));
             
             if (newMessagesFromServer.length > 0) {
-              const filteredPrev = prev.filter(msg => {
+              const filteredPrev = prev.filter((msg: Message) => {
                 if (msg.id === undefined && msg.type === 'user') {
-                  return !newMessagesFromServer.some((nm: any) => nm.type === 'user' && nm.content === msg.content);
+                  return !newMessagesFromServer.some((nm: Message) => nm.type === 'user' && nm.content === msg.content);
                 }
                 return true;
               });
@@ -208,7 +227,7 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean, onClose:
   useEffect(() => {
     if (currentSessionId && messages.length > 0) {
       const history = getChatHistory();
-      const existingSessionIndex = history.findIndex(s => s.id === currentSessionId);
+      const existingSessionIndex = history.findIndex((s: ChatSession) => s.id === currentSessionId);
       
       const sessionData = {
         id: currentSessionId,
@@ -233,7 +252,7 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean, onClose:
     setIsConnectingToStaff(false);
     setStaffName(null);
     const welcome = welcomeMessages[0];
-    const welcomeMsg = {
+    const welcomeMsg: Message = {
       type: 'bot',
       content: welcome.greeting,
       timestamp: new Date().toISOString(),
@@ -246,7 +265,7 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean, onClose:
 
   const loadSession = (sessionId: string) => {
     const history = getChatHistory();
-    const session = history.find(s => s.id === sessionId);
+    const session = history.find((s: ChatSession) => s.id === sessionId);
     if (session) {
       setMessages(session.messages);
       setCurrentSessionId(session.id);
@@ -256,7 +275,7 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean, onClose:
 
   const deleteSession = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const history = getChatHistory().filter(s => s.id !== sessionId);
+    const history = getChatHistory().filter((s: ChatSession) => s.id !== sessionId);
     saveChatHistory(history);
     if (sessionId === currentSessionId) {
       createNewSession();

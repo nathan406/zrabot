@@ -7,14 +7,30 @@ const ADMIN_CREDENTIALS = {
   password: 'zra_secret123'
 };
 
+interface ChatMessage {
+  id: number;
+  sender_type: 'user' | 'staff' | 'bot' | 'system';
+  message: string;
+  timestamp: string;
+  files?: any[];
+}
+
+interface ChatSession {
+  session_id: string;
+  user_id: string;
+  status: string;
+  createdAt: string;
+  isUserWaitingForStaff: boolean;
+}
+
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [activeSessions, setActiveSessions] = useState<any[]>([]);
-  const [selectedSession, setSelectedSession] = useState<any>(null);
-  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [activeSessions, setActiveSessions] = useState<ChatSession[]>([]);
+  const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -87,13 +103,13 @@ export default function Admin() {
         const data = await res.json();
         
         // Merge messages without duplicates based on ID
-        setChatHistory(prev => {
-          const existingIds = new Set(prev.map(m => m.id).filter(id => id !== undefined));
+        setChatHistory((prev: ChatMessage[]) => {
+          const existingIds = new Set(prev.map((m: ChatMessage) => m.id).filter((id): id is number => id !== undefined));
           const mappedMessages = data.messages.map((m: any) => ({
             ...m,
             files: m.files || []
           }));
-          const newMessages = mappedMessages.filter((m: any) => !existingIds.has(m.id));
+          const newMessages = mappedMessages.filter((m: ChatMessage) => !existingIds.has(m.id));
           
           if (newMessages.length > 0) {
             return [...prev, ...newMessages];
@@ -260,7 +276,7 @@ export default function Admin() {
           <button onClick={handleLogout} className="text-xs text-red-600 hover:underline">Logout</button>
         </div>
         <div className="flex-1 overflow-y-auto p-2">
-          {activeSessions.map((s) => (
+          {activeSessions.map((s: ChatSession) => (
             <div 
               key={s.session_id}
               onClick={() => connectToSession(s.session_id)}
