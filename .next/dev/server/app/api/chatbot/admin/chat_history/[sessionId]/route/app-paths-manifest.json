@@ -1,3 +1,0 @@
-{
-  "/api/chatbot/admin/chat_history/[sessionId]/route": "app/api/chatbot/admin/chat_history/[sessionId]/route.js"
-}
