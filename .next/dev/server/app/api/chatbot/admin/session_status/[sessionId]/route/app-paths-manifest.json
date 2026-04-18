@@ -1,0 +1,3 @@
+{
+  "/api/chatbot/admin/session_status/[sessionId]/route": "app/api/chatbot/admin/session_status/[sessionId]/route.js"
+}

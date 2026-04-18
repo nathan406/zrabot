@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  isStaff   Boolean  @default(false)
+  chatMessages ChatMessage[]
+  activeSessions ActiveChatSession[]
+}
+
+model ChatMessage {
+  id            Int            @id @default(autoincrement())
+  userId        Int?
+  user          User?          @relation(fields: [userId], references: [id])
+  sessionId     String
+  message       String
+  response      String
+  timestamp     DateTime       @default(now())
+  responseTime  Float?
+  uploadedFiles UploadedFile[]
+
+  @@index([sessionId])
+}
+
+model UploadedFile {
+  id                    Int                  @id @default(autoincrement())
+  chatMessageId         Int?
+  chatMessage           ChatMessage?         @relation(fields: [chatMessageId], references: [id], onDelete: Cascade)
+  realTimeChatMessageId Int?
+  realTimeChatMessage   RealTimeChatMessage? @relation(fields: [realTimeChatMessageId], references: [id], onDelete: Cascade)
+  file                  String
+  fileType              String
+  originalFilename      String
+  fileSize              Int
+  uploadTime            DateTime             @default(now())
+  processed             Boolean              @default(false)
+  processedContent      String?
+  senderType            String               @default("user") // user, staff
+}
+
+model ActiveChatSession {
+  id                    Int                  @id @default(autoincrement())
+  sessionId             String               @unique
+  userId                String
+  staffMemberId         Int?
+  staffMember           User?                @relation(fields: [staffMemberId], references: [id])
+  status                String               @default("pending") // pending, active, closed
+  createdAt             DateTime             @default(now())
+  connectedAt           DateTime?
+  closedAt              DateTime?
+  isUserWaitingForStaff Boolean              @default(false)
+  realTimeMessages      RealTimeChatMessage[]
+
+  @@index([sessionId])
+}
+
+model RealTimeChatMessage {
+  id            Int               @id @default(autoincrement())
+  chatSessionId Int
+  chatSession   ActiveChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  senderType    String            // user, staff, system
+  senderId      String
+  message       String
+  timestamp     DateTime          @default(now())
+  isRead        Boolean           @default(false)
+  uploadedFiles UploadedFile[]
+}
+
+model KnowledgeCategory {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  description String?
+  createdAt   DateTime        @default(now())
+  articles    KnowledgeBase[]
+}
+
+model KnowledgeBase {
+  id         Int               @id @default(autoincrement())
+  title      String
+  content    String
+  categoryId Int
+  category   KnowledgeCategory @relation(fields: [categoryId], references: [id])
+  tags       String?           // Comma-separated tags
+  isActive   Boolean           @default(true)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}

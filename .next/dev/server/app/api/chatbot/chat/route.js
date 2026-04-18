@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/chatbot/chat/route.js")
+R.c("server/chunks/_0a4c1ey._.js")
+R.c("server/chunks/node_modules_next_03hqfot._.js")
+R.c("server/chunks/node_modules_openai_0qlbn93._.js")
+R.c("server/chunks/node_modules_tr46_0_f7~lv._.js")
+R.c("server/chunks/[root-of-the-server]__0aywm50._.js")
+R.c("server/chunks/[root-of-the-server]__0ks._7f._.js")
+R.c("server/chunks/_next-internal_server_app_api_chatbot_chat_route_actions_0dd9ufa.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/app/api/chatbot/chat/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/app/api/chatbot/chat/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports
